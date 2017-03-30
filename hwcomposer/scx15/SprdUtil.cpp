@@ -588,25 +588,6 @@ int SprdUtil::composerLayers(SprdHWLayer *l1, SprdHWLayer *l2, private_handle_t*
             gsp_cfg_info.layer0_info.pitch = private_h1->width;
             gsp_cfg_info.layer0_info.layer_en = 1;
 
-#if 0 //add for test//
-            {
-                struct private_handle_t *pH = (struct private_handle_t *)l1->getAndroidLayer()->handle;
-                if (pH)
-                {
-                    Rect bounds(pH->width, pH->height);
-                    void* vaddr = NULL;
-
-                    GraphicBufferMapper::get().lock((buffer_handle_t)pH, GRALLOC_USAGE_SW_READ_OFTEN, bounds, &vaddr);
-
-                    if(vaddr > 0)
-                    {
-                        ALOGI_IF(mDebugFlag,"composerLayers[%d],test, set white framework in y plane",__LINE__);
-                        test_set_y((char*)vaddr,private_h1->width,private_h1->height);
-                    }
-                    GraphicBufferMapper::get().unlock((buffer_handle_t)pH);
-                }
-            }
-#endif
             ALOGI_IF(mDebugFlag,"GSP process layer1 L%d,L1 des_w %d des_h %d",__LINE__, FBRect1->w, FBRect1->h);
 
             ALOGI_IF(mDebugFlag,"GSP process layer1 L%d,L1 [x%d,y%d,w%d,h%d,p%d] r%d [x%d,y%d,w%d,h%d]",__LINE__,
@@ -629,6 +610,7 @@ int SprdUtil::composerLayers(SprdHWLayer *l1, SprdHWLayer *l2, private_handle_t*
     } else {
         ALOGI_IF(mDebugFlag,"GSP find layer1 do not exists. L%d,L1 == NULL ",__LINE__);
     }
+			
 
     if(l2)
     {

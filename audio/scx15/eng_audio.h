@@ -3,6 +3,7 @@
 
 #include <system/audio.h>
 
+
 #define NAME_LEN_MAX                            16
 #define EQ_BAND_MAX				8
 #define EQ_MODE_MAX                             6

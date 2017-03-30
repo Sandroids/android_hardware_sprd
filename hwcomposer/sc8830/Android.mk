@@ -22,6 +22,8 @@ ifeq ($(USE_SPRD_HWCOMPOSER),true)
 
 include $(CLEAR_VARS)
 
+LOCAL_CFLAGS := -Werror
+
 LOCAL_MODULE := hwcomposer.$(TARGET_BOARD_PLATFORM)
 
 LOCAL_MODULE_RELATIVE_PATH := hw
