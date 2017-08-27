@@ -22,8 +22,6 @@ ifeq ($(USE_SPRD_HWCOMPOSER),true)
 
 include $(CLEAR_VARS)
 
-LOCAL_CFLAGS := -Wno-error -Wno-error=unused-parameter -Wno-error=return-type
-
 LOCAL_MODULE := hwcomposer.$(TARGET_BOARD_PLATFORM)
 
 LOCAL_MODULE_RELATIVE_PATH := hw
@@ -58,10 +56,20 @@ LOCAL_SRC_FILES := \
 	SprdUtil.cpp \
 	dump.cpp \
 
+ifeq ($(strip $(SOC_SCX35)),true)
+
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/../../gralloc/scx15 \
 	$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include/video/ \
 	$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include/
+
+else
+
+LOCAL_C_INCLUDES := \
+	$(LOCAL_PATH)/../../gralloc/$(TARGET_BOARD_PLATFORM) \
+	$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include/video/ \
+	$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include/
+endif
 
 LOCAL_ADDITIONAL_DEPENDENCIES += \
 	$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr
@@ -79,58 +87,82 @@ LOCAL_CFLAGS += \
 #RGB565 format buffer to display, also can save 4 screen size
 #buffer memory, but it will reduce the image quality.
 
-ifeq ($(strip $(TARGET_BOARD_PLATFORM)),sc8830)
+ifneq (,$(filter sc8830 scx15,$(TARGET_BOARD_PLATFORM)))
 DEVICE_WITH_GSP := true
 DEVICE_OVERLAYPLANE_BORROW_PRIMARYPLANE_BUFFER := true
+endif
+
+ifeq ($(TARGET_BOARD_PLATFORM),sc8830)
+
+ifeq ($(strip $(SOC_SCX35)),true)
+DEVICE_USE_FB_HW_VSYNC := true
+else
+DEVICE_DIRECT_DISPLAY_SINGLE_OSD_LAYER := true
 DEVICE_USE_FB_HW_VSYNC := true
 endif
-ifeq ($(strip $(TARGET_BOARD_PLATFORM)),scx15)
-DEVICE_WITH_GSP := true
-DEVICE_OVERLAYPLANE_BORROW_PRIMARYPLANE_BUFFER := true
+endif
+
+ifeq ($(TARGET_BOARD_PLATFORM),scx15)
 #DEVICE_PRIMARYPLANE_USE_RGB565 := true
 #DEVICE_DYNAMIC_RELEASE_PLANEBUFFER := true
 endif
 
-ifeq ($(strip $(DEVICE_USE_FB_HW_VSYNC)),true)
-	LOCAL_CFLAGS += -DUSE_FB_HW_VSYNC
+ifeq ($(DEVICE_USE_FB_HW_VSYNC),true)
+LOCAL_CFLAGS += -DUSE_FB_HW_VSYNC
 endif
 
-ifeq ($(strip $(DEVICE_WITH_GSP)),true)
-	LOCAL_C_INCLUDES += $(LOCAL_PATH)/../libcamera/sc8830/inc	
-	#LOCAL_CFLAGS += -DVIDEO_LAYER_USE_RGB
-	# PROCESS_VIDEO_USE_GSP : protecting sc8830 code
-	LOCAL_CFLAGS += -DPROCESS_VIDEO_USE_GSP
-	LOCAL_CFLAGS += -DGSP_OUTPUT_USE_YUV420
-	LOCAL_CFLAGS += -DGSP_SCALING_UP_TWICE
-	# LOCAL_CFLAGS += -D_DMA_COPY_OSD_LAYER
-	#
-	# DIRECT_DISPLAY_SINGLE_OSD_LAYER need contiguous physcial address.
-	# At present, this condition cannot be satisfied.
-        #LOCAL_CFLAGS += -DDIRECT_DISPLAY_SINGLE_OSD_LAYER
+ifeq ($(DEVICE_WITH_GSP),true)
 
-	ifeq ($(strip $(TARGET_BOARD_PLATFORM)),sc8830)
-	LOCAL_CFLAGS += -DGSP_ADDR_TYPE_PHY
-        LOCAL_CLFAGS += -DHWC_SUPPORT
-	endif
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../libcamera/sc8830/inc
 
-	ifeq ($(strip $(TARGET_BOARD_PLATFORM)),scx15)
-	LOCAL_CFLAGS += -DGSP_ADDR_TYPE_PHY
-	#LOCAL_CFLAGS += -DGSP_ADDR_TYPE_IOVA
-	#LOCAL_CFLAGS += -DGSP_BLEND_2_LAYERS
-	#LOCAL_CFLAGS += -DGSP_ENDIAN_IMPROVEMENT
-	endif
+#LOCAL_CFLAGS += -DVIDEO_LAYER_USE_RGB
+# PROCESS_VIDEO_USE_GSP : protecting sc8830 code
+LOCAL_CFLAGS += -DPROCESS_VIDEO_USE_GSP
+LOCAL_CFLAGS += -DGSP_OUTPUT_USE_YUV420
+LOCAL_CFLAGS += -DGSP_SCALING_UP_TWICE
+# LOCAL_CFLAGS += -D_DMA_COPY_OSD_LAYER
+#
+# if GSP has not IOMMU, DIRECT_DISPLAY_SINGLE_OSD_LAYER need contiguous physcial address;
+# if GSP has IOMMU, we can open DIRECT_DISPLAY_SINGLE_OSD_LAYER.
+ifeq ($(strip $(DEVICE_DIRECT_DISPLAY_SINGLE_OSD_LAYER)),true)
+LOCAL_CFLAGS += -DDIRECT_DISPLAY_SINGLE_OSD_LAYER
 endif
 
-ifeq ($(strip $(DEVICE_PRIMARYPLANE_USE_RGB565)), true)
-	LOCAL_CFLAGS += -DPRIMARYPLANE_USE_RGB565
+ifeq ($(strip $(TARGET_BOARD_PLATFORM)),sc8830)
+ifneq ($(strip $(DEVICE_GSP_NOT_SCALING_UP_TWICE)),true) # when on tshark, if cpy2_pa is exist, we dont support scaling-up-twice feature
+endif
 endif
 
-ifeq ($(strip $(DEVICE_OVERLAYPLANE_BORROW_PRIMARYPLANE_BUFFER)), true)
-	LOCAL_CFLAGS += -DBORROW_PRIMARYPLANE_BUFFER
+ifeq ($(TARGET_BOARD_PLATFORM),scx15)
+LOCAL_CFLAGS += -DGSP_ADDR_TYPE_PHY
 endif
 
-ifeq ($(strip $(DEVICE_DYNAMIC_RELEASE_PLANEBUFFER)), true)
-	LOCAL_CFLAGS += -DDYNAMIC_RELEASE_PLANEBUFFER
+ifeq ($(strip $(SOC_SCX35)),true)
+LOCAL_CFLAGS += -DGSP_ADDR_TYPE_PHY
+endif
+
+endif # DEVICE_WITH_GSP
+
+ifeq ($(DEVICE_PRIMARYPLANE_USE_RGB565),true)
+LOCAL_CFLAGS += -DPRIMARYPLANE_USE_RGB565
+endif
+
+ifeq ($(DEVICE_OVERLAYPLANE_BORROW_PRIMARYPLANE_BUFFER),true)
+LOCAL_CFLAGS += -DBORROW_PRIMARYPLANE_BUFFER
+endif
+
+ifeq ($(DEVICE_DYNAMIC_RELEASE_PLANEBUFFER),true)
+LOCAL_CFLAGS += -DDYNAMIC_RELEASE_PLANEBUFFER
+endif
+
+# For Virtual Display
+# HWC need do the Hardware copy and format convertion
+# FORCE_ADJUST_ACCELERATOR: for a better performance of Virtual Display,
+# we forcibly make sure the GSP/GPP device to be used by Virtual Display.
+# and disable the GSP/GPP on Primary Display.
+ifeq ($(TARGET_FORCE_HWC_FOR_VIRTUAL_DISPLAYS),true)
+LOCAL_CFLAGS += -DFORCE_HWC_COPY_FOR_VIRTUAL_DISPLAYS
+#LOCAL_CFLAGS += -DFORCE_ADJUST_ACCELERATOR
 endif
 
 # OVERLAY_COMPOSER_GPU_CONFIG: Enable or disable OVERLAY_COMPOSER_GPU

@@ -26,5 +26,9 @@ include $(call all-makefiles-under,$(TARGET_BOARD_PLATFORM))
 endif
 
 ifeq ($(SOC_SCX35),true)
-include $(call all-makefiles-under,scx15)
+include $(call all-named-subdir-makefiles,scx15)
+endif
+
+ifeq ($(SOC_SCX30G_V2),true)
+include $(call all-makefiles-under,sc8830)
 endif

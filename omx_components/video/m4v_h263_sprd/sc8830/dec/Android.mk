@@ -5,6 +5,8 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	SPRDMPEG4Decoder.cpp
 
+ifeq ($(strip $(SOC_SCX35)),true)
+
 LOCAL_C_INCLUDES := \
 	frameworks/av/media/libstagefright/include \
 	frameworks/native/include/media/openmax \
@@ -14,6 +16,20 @@ LOCAL_C_INCLUDES := \
 	frameworks/native/include/media/hardware \
 	$(LOCAL_PATH)/../../../../../gralloc/scx15 \
 	$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include/video
+
+else
+
+LOCAL_C_INCLUDES := \
+	frameworks/av/media/libstagefright/include \
+	frameworks/native/include/media/openmax \
+	frameworks/native/include/media/hardware \
+	frameworks/native/include/ui \
+	frameworks/native/include/utils \
+	frameworks/native/include/media/hardware \
+	$(LOCAL_PATH)/../../../../../gralloc/$(TARGET_BOARD_PLATFORM) \
+	$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include/video
+
+endif
 
 LOCAL_ADDITIONAL_DEPENDENCIES += \
 	$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr

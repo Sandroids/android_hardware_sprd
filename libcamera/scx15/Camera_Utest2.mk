@@ -12,6 +12,9 @@ sc8830like=1
 endif
 
 ifeq ($(strip $(sc8830like)),1)
+
+ifeq ($(strip $(SOC_SCX35)),true)
+
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/vsp/sc8830/inc	\
 	$(LOCAL_PATH)/vsp/sc8830/src \
@@ -28,6 +31,27 @@ LOCAL_C_INCLUDES := \
 	system/media/camera/include \
 	$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/source/include/video \
 	hardware/sprd/gralloc/scx15 \
+
+else
+
+LOCAL_C_INCLUDES := \
+	$(LOCAL_PATH)/vsp/sc8830/inc	\
+	$(LOCAL_PATH)/vsp/sc8830/src \
+	$(LOCAL_PATH)/jpeg/jpeg_fw_8830/inc \
+	$(LOCAL_PATH)/jpeg/jpeg_fw_8830/src \
+	$(LOCAL_PATH)/sc8830/inc \
+	$(LOCAL_PATH)/sensor_drv_u/inc \
+	$(LOCAL_PATH)/isp/inc \
+	$(LOCAL_PATH)/sc8830/isp_calibration/inc \
+	external/skia/include/images \
+	external/skia/include/core\
+        external/jhead \
+        external/sqlite/dist \
+	system/media/camera/include \
+	$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/source/include/video \
+	hardware/sprd/gralloc/$(TARGET_BOARD_PLATFORM) \
+
+endif
 
 LOCAL_ADDITIONAL_DEPENDENCIES += \
 	$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr

@@ -54,6 +54,7 @@ enum {
     HAL_PIXEL_FORMAT_YCrCb_422_SP       = 0x1B,
     HAL_PIXEL_FORMAT_YCrCb_420_P        = 0x1C,
 };
+
 /* NOTE:
  * If your framebuffer device driver is integrated with UMP, you will have to
  * change this IOCTL definition to reflect your integration with the framebuffer
